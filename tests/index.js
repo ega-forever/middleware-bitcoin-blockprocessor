@@ -1,11 +1,19 @@
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Egor Zuev <zyev.egor@gmail.com>
+ */
+
 require('dotenv/config');
 
 const config = require('../config'),
   Network = require('bcoin/lib/protocol/network'),
+  txModel = require('../models/txModel'),
+  coinModel = require('../models/coinModel'),
   bcoin = require('bcoin'),
   expect = require('chai').expect,
-  accountModel = require('../models/accountModel'),
-  ipcExec = require('./helpers/ipcExec'),
+  Promise = require('bluebird'),
+  exec = require('../services/execService'),
   _ = require('lodash'),
   ctx = {
     network: null,
@@ -35,33 +43,26 @@ describe('core/blockProcessor', function () {
     return mongoose.disconnect();
   });
 
-  it('validate balance', async () => {
-    let keyring = new bcoin.keyring(ctx.accounts[0].privateKey, ctx.network);
-    let coins = await ipcExec('getcoinsbyaddress', [keyring.getAddress().toString()]);
-
-    ctx.summ = _.chain(coins)
-      .map(c => c.value)
-      .sum()
-      .value();
-  });
-
   it('generate blocks and initial coins', async () => {
     let keyring = new bcoin.keyring(ctx.accounts[0].privateKey, ctx.network);
-    let response = await ipcExec('generatetoaddress', [10, keyring.getAddress().toString()]);
+    let response = await exec('generatetoaddress', [10, keyring.getAddress().toString()]);
     expect(response).to.not.be.undefined;
   });
 
-  it('validate balance again', async () => {
+  it('validate balance greater 0', async () => {
+    await Promise.delay(20000);
     let keyring = new bcoin.keyring(ctx.accounts[0].privateKey, ctx.network);
-    let coins = await ipcExec('getcoinsbyaddress', [keyring.getAddress().toString()]);
+    let coins = await coinModel.find({address: keyring.getAddress().toString()});
 
     let newSumm = _.chain(coins)
-      .map(c => c.value)
+      .map(c => parseInt(c.value))
       .sum()
       .value();
 
-    expect(newSumm).to.be.gt(ctx.summ);
+
+    expect(newSumm).to.be.gt(0);
 
   });
+
 
 });
