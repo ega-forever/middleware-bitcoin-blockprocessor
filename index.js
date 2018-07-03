@@ -6,23 +6,20 @@
 
 const mongoose = require('mongoose'),
   config = require('./config'),
+  models = require('./models'),
+  MasterNodeService = require('middleware-common-components/services/blockProcessor/MasterNodeService'),
   customNetworkRegistrator = require('./networks'),
   Promise = require('bluebird');
 
 customNetworkRegistrator(config.node.network);
 
-mongoose.Promise = Promise;
-mongoose.connect(config.mongo.data.uri, {useMongoClient: true});
-mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMongoClient: true});
-
 const filterTxsByAccountsService = require('./services/filterTxsByAccountsService'),
   amqp = require('amqplib'),
   bunyan = require('bunyan'),
-  zmq = require('zeromq'),
+  providerService = require('./services/providerService'),
   _ = require('lodash'),
   BlockWatchingService = require('./services/blockWatchingService'),
   SyncCacheService = require('./services/syncCacheService'),
-  sock = zmq.socket('sub'),
   log = bunyan.createLogger({name: 'core.blockProcessor'});
 
 /**
@@ -31,65 +28,76 @@ const filterTxsByAccountsService = require('./services/filterTxsByAccountsServic
  * services about new block or tx, where we meet registered address
  */
 
-sock.monitor(500, 0);
-sock.connect(config.node.zmq);
-sock.subscribe('rawtx');
 
-sock.on('close', () => {
-  log.error('zmq disconnected!');
-  process.exit(0);
-});
+mongoose.Promise = Promise;
+mongoose.connect(config.mongo.data.uri, {useMongoClient: true});
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMongoClient: true});
 
-
-[mongoose.accounts, mongoose.connection].forEach(connection =>
-  connection.on('disconnected', function () {
-    log.error('mongo disconnected!');
-    process.exit(0);
-  })
-);
 
 const init = async function () {
 
-  let amqpConn = await amqp.connect(config.rabbit.url)
-    .catch(() => {
-      log.error('rabbitmq is not available!');
-      process.exit(0);
-    });
+  [mongoose.accounts, mongoose.connection].forEach(connection =>
+    connection.on('disconnected', () => {
+      throw new Error('mongo disconnected!');
+    })
+  );
 
-  let channel = await amqpConn.createChannel();
+  models.init();
+
+
+  let amqpInstance = await amqp.connect(config.rabbit.url);
+
+  let channel = await amqpInstance.createChannel();
 
   channel.on('close', () => {
-    log.error('rabbitmq process has finished!');
-    process.exit(0);
+    throw new Error('rabbitmq process has finished!');
   });
 
-  try {
-    await channel.assertExchange('events', 'topic', {durable: false});
-  } catch (e) {
-    log.error(e);
-    channel = await amqpConn.createChannel();
-  }
+
+  await channel.assertExchange('events', 'topic', {durable: false});
+  await channel.assertExchange('internal', 'topic', {durable: false});
+  await channel.assertQueue(`${config.rabbit.serviceName}_current_provider.get`, {durable: false});
+  await channel.bindQueue(`${config.rabbit.serviceName}_current_provider.get`, 'internal', `${config.rabbit.serviceName}_current_provider.get`);
+
+  const masterNodeService = new MasterNodeService(channel, config.rabbit.serviceName);
+  await masterNodeService.start();
+
+  providerService.events.on('provider_set', providerURI => {
+    let providerIndex = _.findIndex(config.node.providers, providerURI);
+    if (providerIndex !== -1)
+      channel.publish('internal', `${config.rabbit.serviceName}_current_provider.set`, new Buffer(JSON.stringify({index: providerIndex})));
+  });
+
+  channel.consume(`${config.rabbit.serviceName}_current_provider.get`, async () => {
+    let providerInstance = await providerService.get();
+    let providerIndex = _.findIndex(config.node.providers, provider => provider.http === providerInstance.http);
+    if (providerIndex !== -1)
+      channel.publish('internal', `${config.rabbit.serviceName}_current_provider.set`, new Buffer(JSON.stringify({index: providerIndex})));
+  }, {noAck: true});
 
   const syncCacheService = new SyncCacheService();
 
-
-  syncCacheService.events.on('block', async block => {
+  let blockEventCallback = async block => {
     log.info(`${block.hash} (${block.number}) added to cache.`);
     await channel.publish('events', `${config.rabbit.serviceName}_block`, new Buffer(JSON.stringify({block: block.number})));
     let filtered = await filterTxsByAccountsService(block.txs);
-    await Promise.all(filtered.map(item =>
-      channel.publish('events', `${config.rabbit.serviceName}_transaction.${item.address}`, new Buffer(JSON.stringify(Object.assign(item, {block: block.number}))))
-    ));
-  });
 
-  let endBlock = await syncCacheService.start()
-    .catch((err) => {
-      if (_.get(err, 'code') === 0) {
-        log.info('nodes are down or not synced!');
-        process.exit(0);
-      }
-      log.error(err);
-    });
+    for (let item of filtered)
+      for (let tx of item.txs)
+        await channel.publish('events', `${config.rabbit.serviceName}_transaction.${item.address}`, new Buffer(JSON.stringify(tx)));
+  };
+
+  let txEventCallback = async tx => {
+    let filtered = await filterTxsByAccountsService([tx]);
+    for (let item of filtered)
+      for (let tx of item.txs)
+        await channel.publish('events', `${config.rabbit.serviceName}_transaction.${item.address}`, new Buffer(JSON.stringify(tx)));
+  };
+
+
+  syncCacheService.events.on('block', blockEventCallback);
+
+  let endBlock = await syncCacheService.start();
 
   await new Promise((res) => {
     if (config.sync.shadow)
@@ -101,29 +109,20 @@ const init = async function () {
     });
   });
 
-  const blockWatchingService = new BlockWatchingService(sock, endBlock);
+  const blockWatchingService = new BlockWatchingService(endBlock);
 
-  await blockWatchingService.startSync().catch(e => {
-    log.error(`error starting cache service: ${e}`);
-    process.exit(0);
-  });
+  blockWatchingService.events.on('block', blockEventCallback);
+  blockWatchingService.events.on('tx', txEventCallback);
 
-  blockWatchingService.events.on('block', async block => {
-    log.info(`${block.hash} (${block.number}) added to cache.`);
-    await channel.publish('events', `${config.rabbit.serviceName}_block`, new Buffer(JSON.stringify({block: block.number})));
-    let filtered = await filterTxsByAccountsService(block.txs);
-    await Promise.all(filtered.map(item =>
-      channel.publish('events', `${config.rabbit.serviceName}_transaction.${item.address}`, new Buffer(JSON.stringify(Object.assign(item, {block: block.number}))))
-    ));
-  });
-
-  blockWatchingService.events.on('tx', async (tx) => {
-    let filtered = await filterTxsByAccountsService([tx]);
-    await Promise.all(filtered.map(item =>
-      channel.publish('events', `${config.rabbit.serviceName}_transaction.${item.address}`, new Buffer(JSON.stringify(Object.assign(item, {block: -1}))))
-    ));
-  });
+  await blockWatchingService.startSync(endBlock);
 
 };
 
-module.exports = init();
+module.exports = init().catch(err => {
+  if (_.get(err, 'code') === 0) {
+    log.info('nodes are down or not synced!');
+  } else {
+    log.error(err);
+  }
+  process.exit(0);
+});

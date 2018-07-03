@@ -5,7 +5,9 @@
  */
 
 const _ = require('lodash'),
-  accountModel = require('../models/accountModel');
+  Promise = require('bluebird'),
+  getFullTxFromCache = require('../utils/txs/getFullTxFromCache'),
+  models = require('../models');
 
 /**
  * @service
@@ -29,7 +31,7 @@ module.exports = async txs => {
     .value();
 
   let filteredByChunks = await Promise.all(addresses.map(chunk =>
-    accountModel.find({
+    models.accountModel.find({
       address: {
         $in: chunk
       },
@@ -39,23 +41,29 @@ module.exports = async txs => {
     })
   ));
 
-  return _.chain(filteredByChunks)
+  let relations = _.chain(filteredByChunks)
     .flattenDeep()
     .map(account => ({
-      address: account.address,
-      txs: _.chain(txs)
-        .filter(tx =>
-          _.chain(tx.inputs)
-            .union(tx.outputs)
-            .flattenDeep()
-            .map(i => (i.address || '').toString())
-            .includes(account.address)
-            .value()
-        )
-        .map(tx => tx.hash)
-        .value()
-    })
+        address: account.address,
+        txs: _.chain(txs)
+          .filter(tx =>
+            _.chain(tx.inputs)
+              .union(tx.outputs)
+              .flattenDeep()
+              .map(i => (i.address || '').toString())
+              .includes(account.address)
+              .value()
+          )
+          .map(tx => tx.hash)
+          .value()
+      })
     )
     .value();
+
+
+  for (let relation of relations)
+    relation.txs = await Promise.map(relation.txs, async txHash => await getFullTxFromCache(txHash));
+
+  return relations;
 
 };

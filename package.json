@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "middleware-common-components": "github:ChronoBank/middleware-common-components",
     "amqplib": "^0.5.1",
     "bcoin": "^1.0.0-beta.15",
     "bluebird": "^3.5.0",
@@ -11,6 +12,7 @@
     "lodash": "^4.17.4",
     "memwatch-next": "^0.3.0",
     "mongoose": "^4.13.7",
+    "mongoose-long": "^0.2.1",
     "node-ipc": "^9.1.1",
     "request": "^2.85.0",
     "request-promise": "^4.2.2",
