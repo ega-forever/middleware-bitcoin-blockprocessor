@@ -1,0 +1,7 @@
+apiVersion: v1
+description: Helm chart for middleware-bitcoin-blockprocessor
+name: middleware-bitcoin-blockprocessor-stage
+version: 0.0.1
+maintainers:
+- name: Chronobank dev team
+  email: dev@mail.com
