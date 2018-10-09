@@ -8,6 +8,10 @@ stages:
   - nginx_reload
   - clean
 
+services:
+  - mongo:3.4.10
+  - rabbitmq:latest
+
 variables:
   REGISTRY: gcr.io/deep-wares-144610
   CONTAINER_IMAGE_STAGE: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/stage/middleware-bitcoin-blockprocessor:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHA}
