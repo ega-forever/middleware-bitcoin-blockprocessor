@@ -9,7 +9,7 @@ stages:
   - clean
 
 services:
-  - mongo:3.4.10
+  - mongo:latest
   - rabbitmq:latest
 
 variables:
