@@ -13,7 +13,7 @@ envVars: {}
 #  POST_SERVICE_PORT: 5000
 
 service:
-  name: middleware-bitcoin-blockprocessor-develop
+  name: mid-btc-blk-dev
   type: ClusterIP
   externalPort: 8080
   internalPort: 8080
