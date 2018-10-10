@@ -46,9 +46,11 @@ spec:
             httpGet:
               path: /
               port: {{ .Values.service.internalPort }}
+        {{- if .Values.persistence.enabled }}
           volumeMounts:
             - mountPath: /mnt/service
               name: database
+            {{- end -}}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
