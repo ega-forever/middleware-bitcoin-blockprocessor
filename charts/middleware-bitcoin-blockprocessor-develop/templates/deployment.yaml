@@ -50,7 +50,7 @@ spec:
           volumeMounts:
             - mountPath: /mnt/service
               name: database
-            {{- end -}}
+        {{- end -}}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
