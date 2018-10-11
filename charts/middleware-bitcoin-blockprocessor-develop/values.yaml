@@ -23,13 +23,13 @@ nodeSelector:
   env: stage
 
 persistence:
-  enabled: false
+  enabled: true
   ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
   ## Default: volume.alpha.kubernetes.io/storage-class: default
-  #storageClass: kubernetes.io/gce-pd
-  #storageClassName: standard
-  #accessMode: ReadWriteMany
-  #size: 2Gi
+  storageClass: kubernetes.io/gce-pd
+  storageClassName: standard
+  accessMode: ReadWriteMany
+  size: 2Gi
   #pd_name:  middleware-signing-service-stage-pv
 
 resources: {}

@@ -36,7 +36,7 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
             httpGet:
-              path: /info
+              path: /
               port: {{ .Values.service.internalPort }}
           readinessProbe:
             initialDelaySeconds: 120
@@ -44,11 +44,11 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
             httpGet:
-              path: /info
+              path: /
               port: {{ .Values.service.internalPort }}
           volumeMounts:
-            - mountPath: /app/sqlite
-              name: database
+            - mountPath: /mnt/service
+              name: logs
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}
@@ -57,7 +57,7 @@ spec:
     {{- end }}
     {{- if .Values.persistence.enabled }}
       volumes:
-        - name: database
+        - name: logs
           persistentVolumeClaim:
             claimName: {{ template "ui.fullname" . }}-pvc
         {{- else }}
