@@ -45,7 +45,7 @@ persistence:
   storageClassName: standard
   accessMode: ReadWriteMany
   size: 20Gi
-  pd_name: middleware-bitcoin-blockprocessor-pv
+  #pd_name: middleware-bitcoin-blockprocessor-pv
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

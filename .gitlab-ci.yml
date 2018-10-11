@@ -69,6 +69,8 @@ Tests:
     - npm test -- --coverage
     #- exit 0
 
+  retry: 2
+
   artifacts:
     paths:
       - node_modules/
