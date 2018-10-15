@@ -15,9 +15,9 @@ services:
 variables:
   REGISTRY: gcr.io/deep-wares-144610
   CONTAINER_IMAGE_STAGE: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/stage/middleware-bitcoin-blockprocessor:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHA}
+  CONTAINER_IMAGE_STAGE_LATEST: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/stage/middleware-bitcoin-blockprocessor:latest
   CONTAINER_IMAGE_PROD: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/prod/middleware-bitcoin-blockprocessor:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHA}
   CONTAINER_IMAGE_PROD_LATEST: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/prod/middleware-bitcoin-blockprocessor:latest
-  CONTAINER_IMAGE_STAGE_LATEST: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/stage/middleware-bitcoin-blockprocessor:latest
   CONTAINER_IMAGE_DEV: ${REGISTRY}/chronobank/middleware-bitcoin-blockprocessor/develop/middleware-bitcoin-blockprocessor:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHA}
 
   MONGO_URI: mongodb://mongo:27017/data
@@ -77,6 +77,23 @@ Tests:
     expire_in: "3 day"
 
 
+Release_DEVELOP:
+  stage: release
+  image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+
+  script:
+    - docker login -u _json_key -p "$(cat /gcr-secret/key.json)" https://gcr.io
+    - docker build --no-cache --build-arg CONF_TYPE_ARG=develop -t ${CONTAINER_IMAGE_DEV} .
+    - docker push ${CONTAINER_IMAGE_DEV}
+
+  only:
+    - develop
+  #only:
+    #- tags
+
+
 Release_STAGE:
   stage: release
   image: docker:latest
@@ -95,23 +112,7 @@ Release_STAGE:
   #only:
     #- tags
 
-Release_DEVELOP:
-  stage: release
-  image: docker:latest
-  variables:
-    DOCKER_DRIVER: overlay2
-
-  script:
-    - docker login -u _json_key -p "$(cat /gcr-secret/key.json)" https://gcr.io
-    - docker build --no-cache --build-arg CONF_TYPE_ARG=develop -t ${CONTAINER_IMAGE_DEV} .
-    - docker push ${CONTAINER_IMAGE_DEV}
-
-  only:
-    - develop
-  #only:
-    #- tags
-
-Release_Master:
+Release_PROD:
   stage: release
   image: docker:latest
   variables:

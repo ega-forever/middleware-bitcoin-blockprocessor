@@ -1,0 +1,33 @@
+const env = {
+  MONGO_URI: 'mongodb://middleware-bitcoin-db-mongodb.middleware:27017/testnet-bitcoin-middleware-chronobank-io',
+  MONGO_COLLECTION_PREFIX: 'bitcoin',
+  RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
+  RABBIT_SERVICE_NAME: 'testnet-bitcoin-middleware-chronobank-io',
+  NETWORK: 'testnet',
+  PROVIDERS: 'http://localhost:9998@user:123@tcp://127.0.0.1:43332',
+  REST_PORT: 8080
+};
+module.exports = {
+  /**
+   * Application configuration section
+   * http://pm2.keymetrics.io/docs/usage/application-declaration/
+   */
+  apps: [
+    {
+      name: 'block_processor',
+      script: 'src/core/middleware-bitcoin-blockprocessor',
+      env: env
+    },
+    {
+      name: 'balance_processor',
+      script: 'src/core/middleware-bitcoin-balance-processor',
+      env: env
+    },
+    {
+      name: 'rest',
+      script: 'src/core/middleware-bitcoin-rest',
+      env: env
+    }
+  ]
+}
+
