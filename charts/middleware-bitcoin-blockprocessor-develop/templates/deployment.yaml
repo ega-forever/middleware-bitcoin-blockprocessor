@@ -57,7 +57,7 @@ spec:
     {{- end }}
     {{- if .Values.persistence.enabled }}
       volumes:
-        - name: database
+        - name: logs
           persistentVolumeClaim:
             claimName: {{ template "ui.fullname" . }}-pvc
         {{- else }}
