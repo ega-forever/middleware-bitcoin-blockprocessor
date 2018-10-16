@@ -20,7 +20,8 @@ service:
 
 nodeSelector:
   #cloud.google.com/gke-nodepool: default-pool #whole cluster nodes
-  env: stage
+  #env: stage
+  env : ethereum-nodes
 
 persistence:
   enabled: true

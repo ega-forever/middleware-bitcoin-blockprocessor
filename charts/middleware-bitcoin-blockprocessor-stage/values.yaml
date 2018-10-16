@@ -20,7 +20,8 @@ service:
 
 nodeSelector:
   #cloud.google.com/gke-nodepool: default-pool #whole cluster nodes
-  env: stage
+  #env: stage
+  env : ethereum-nodes
 
 persistence:
   enabled: true
@@ -28,7 +29,7 @@ persistence:
   ## Default: volume.alpha.kubernetes.io/storage-class: default
   storageClass: kubernetes.io/gce-pd
   storageClassName: standard
-  accessMode: ReadWriteMany
+  accessMode: ReadWriteOnce
   size: 2Gi
   #pd_name:  middleware-signing-service-stage-pv
 
