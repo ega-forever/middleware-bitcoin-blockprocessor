@@ -42,7 +42,7 @@ Build:
 
   script:
     - apk update
-    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y sh
+    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python sh
     - npm cache verify
     - npm install
 
@@ -60,7 +60,7 @@ Tests:
 
   before_script:
     - apk update
-    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y
+    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python
     - npm cache verify
     - npm install
 
