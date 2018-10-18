@@ -41,8 +41,8 @@ Build:
     DOCKER_DRIVER: overlay2
 
   script:
-    - apt update
-    - apt install git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y sh
+    - apk update
+    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y sh
     - npm cache verify
     - npm install
 
@@ -59,8 +59,8 @@ Tests:
     DOCKER_DRIVER: overlay2
 
   before_script:
-    - apt update
-    - apt install git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y
+    - apk update
+    - apk add git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev g++ gcc make python -y
     - npm cache verify
     - npm install
 
