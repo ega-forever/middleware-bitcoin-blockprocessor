@@ -1,4 +1,5 @@
-FROM node:8
+#FROM node:8
+FROM keymetrics/pm2:latest-alpine
 ARG CONF_TYPE_ARG
 ENV CONF_TYPE=$CONF_TYPE_ARG
 ENV NPM_CONFIG_LOGLEVEL warn
