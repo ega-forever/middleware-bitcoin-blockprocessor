@@ -13,4 +13,5 @@ RUN  npm cache verify && npm install
 EXPOSE 8080
 
 #CMD pm2-docker start /mnt/config/${NETWORK_TYPE}/ecosystem.config.js
+
 ENTRYPOINT ["./start.sh"]
