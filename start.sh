@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 pm2-runtime ecosystem.config.js --env $(echo $CONF_TYPE)
 
