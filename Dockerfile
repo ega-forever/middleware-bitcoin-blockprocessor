@@ -6,7 +6,6 @@ ENV NPM_CONFIG_LOGLEVEL warn
 
 RUN apk update && \
     apk add python make g++ git && \
-    npm install -g pm2@2.7.1 && \
     mkdir /app
 COPY . /app
 WORKDIR /app
