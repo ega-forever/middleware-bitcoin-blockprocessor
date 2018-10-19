@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'middleware-bitcoin-blockprocessor',
-      script: 'index.js',
+      script: './index.js',
       watch: true,
       env: {
         PORT: 8080,
