@@ -37,7 +37,7 @@ spec:
             failureThreshold: 3
             exec:
               command:
-                - pm2.
+                - pm2
                 - ping
           readinessProbe:
             initialDelaySeconds: 120
@@ -46,7 +46,7 @@ spec:
             failureThreshold: 3
             exec:
               command:
-                - pm2.
+                - pm2
                 - ping
           volumeMounts:
             - mountPath: /mnt/service
