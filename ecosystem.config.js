@@ -36,26 +36,25 @@ const env_production = {
 };
 
 module.exports = {
-  /**
-   * Application configuration section
-   * http://pm2.keymetrics.io/docs/usage/application-declaration/
-   */
-  apps: [
-    {
-      name: 'block_processor',
-      script: 'src/core/middleware-bitcoin-blockprocessor',
-      env: env
-    },
-    {
-      name: 'balance_processor',
-      script: 'src/core/middleware-bitcoin-balance-processor',
-      env: env
-    },
-    {
-      name: 'rest',
-      script: 'src/core/middleware-bitcoin-rest',
-      env: env
-    }
-  ]
+ apps: [
+   {
+     name: 'middleware-bitcoin-blockprocessor',
+     script: './index.js',
+     watch: true,
+     disable_trace: false,
+     env: {
+       PORT: 8080,
+       NODE_ENV: 'development'
+     },
+     env_production: env_prod,
+     env_develop: {
+       PORT: 8080,
+       NODE_ENV: 'development'
+     },
+     env_stage: {
+       PORT: 8080,
+       NODE_ENV: 'production'
+     }
+   }
+ ]
 }
-
