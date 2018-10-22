@@ -25,7 +25,7 @@ const env_stage = {
   PROVIDERS: 'http://bcoin-testnet-node.default:18332@tcp://bcoin-testnet-node.default:43332',
   REST_PORT: 8080
 };
-const env_production = {
+const env_prod = {
   MONGO_URI: 'mongodb://middleware-testnet:ChR0mOn1T6@middleware-bitcoin-db-mongodb.middleware:27017/mainnet-bitcoin-middleware-chronobank-io',
   MONGO_COLLECTION_PREFIX: 'bitcoin',
   RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
@@ -42,18 +42,10 @@ module.exports = {
      script: './index.js',
      watch: true,
      disable_trace: false,
-     env: {
-       NODE_ENV: 'development'
-     },
-     env_production: env_production: {
-       NODE_ENV: 'production'
-     },
-     env_develop: {
-       NODE_ENV: 'development'
-     },
-     env_stage: {
-       NODE_ENV: 'production'
-     }
+     env: env_develop,
+     env_production: env_prod,
+     env_develop: env_develop,
+     env_stage: env_stage
    }
  ]
 }
