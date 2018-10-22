@@ -76,7 +76,6 @@ Tests:
       - node_modules/
     expire_in: "3 day"
 
-
 Release_DEVELOP:
   stage: release
   image: docker:latest
