@@ -43,16 +43,15 @@ module.exports = {
      watch: true,
      disable_trace: false,
      env: {
-       PORT: 8080,
        NODE_ENV: 'development'
      },
-     env_production: env_prod,
+     env_production: env_production: {
+       NODE_ENV: 'production'
+     },
      env_develop: {
-       PORT: 8080,
        NODE_ENV: 'development'
      },
      env_stage: {
-       PORT: 8080,
        NODE_ENV: 'production'
      }
    }
