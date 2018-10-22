@@ -6,7 +6,7 @@ const env_develop = {
   NETWORK: 'testnet',
   PROVIDERS: 'http://bcoin-testnet-node.default:18332@tcp://bcoin-testnet-node.default:43332',
   REST_PORT: 8080
-},
+};
 const env_stage = {
   MONGO_URI: 'mongodb://middleware-testnet:ChR0mOn1T6@middleware-bitcoin-db-mongodb.middleware:27017/testnet-bitcoin-middleware-chronobank-io',
   MONGO_COLLECTION_PREFIX: 'bitcoin',
@@ -15,7 +15,7 @@ const env_stage = {
   NETWORK: 'testnet',
   PROVIDERS: 'http://bcoin-testnet-node.default:18332@tcp://bcoin-testnet-node.default:43332',
   REST_PORT: 8080
-},
+};
 const env_production = {
   MONGO_URI: 'mongodb://middleware-testnet:ChR0mOn1T6@middleware-bitcoin-db-mongodb.middleware:27017/mainnet-bitcoin-middleware-chronobank-io',
   MONGO_COLLECTION_PREFIX: 'bitcoin',
