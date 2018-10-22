@@ -35,17 +35,19 @@ spec:
             timeoutSeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
+            exec:
+              command:
+                - pm2.
+                - ping
           readinessProbe:
             initialDelaySeconds: 120
             timeoutSeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-            httpGet:
-              path: /
-              port: {{ .Values.service.internalPort }}
+            exec:
+              command:
+                - pm2.
+                - ping
           volumeMounts:
             - mountPath: /mnt/service
               name: logs
