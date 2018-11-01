@@ -32,13 +32,22 @@ module.exports = (ctx) => {
     const currentNodeHeight = await instance.execute('getblockcount', []);
 
     if (currentNodeHeight < 1000)
-      await instance.execute('generatetoaddress', [1000, key.getAddress('base58', ctx.network)]);
+      await instance.execute('generatetoaddress', [1000 - currentNodeHeight, key.getAddress('base58', ctx.network)]);
 
-    const newCurrentNodeHeight = await instance.execute('getblockcount', []);
-    await Promise.delay(newCurrentNodeHeight === 1000 ? 60000 : newCurrentNodeHeight * 10);
+    await new Promise(res => {
+      let intervalId = setInterval(async () => {
 
-    let blockCount = await models.blockModel.count();
-    expect(blockCount).to.be.eq(newCurrentNodeHeight + 1);
+        const newCurrentNodeHeight = await instance.execute('getblockcount', []);
+        let blockCount = await models.blockModel.count();
+
+        if (blockCount !== newCurrentNodeHeight + 1)
+          return;
+
+        clearInterval(intervalId);
+        res();
+      }, 5000)
+    });
+
   });
 
 

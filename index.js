@@ -68,7 +68,7 @@ const init = async function () {
   models.init();
 
 
-  providerService.on('error', err => {
+  providerService.on('connection_error', err => {
     log.error(err);
     process.exit(1);
   });

@@ -80,6 +80,7 @@ class ProviderService extends EventEmitter {
 
       }).timeout(5000);
       sock.disconnect(providerURI.zmq);
+      sock.unmonitor();
 
       const instance = this.getConnectorFromURI(providerURI.uri);
       await instance.execute('getblockcount', []);
@@ -87,8 +88,11 @@ class ProviderService extends EventEmitter {
         instance.disconnect();
       return providerURI;
     })).catch((err) => {
-      this.emit('error', `no available connection: ${err.toString()}`);
+      this.emit('connection_error', `no available connection: ${err.toString()}`);
     });
+
+    if (!providerURI)
+      return;
 
     const currentProviderURI = this.connector ? this.connector.currentProvider.uri : '';
 
@@ -135,10 +139,15 @@ class ProviderService extends EventEmitter {
    */
   async switchConnectorSafe () {
 
-    return new Promise(res => {
+    return new Promise((res, rej) => {
       sem.take(async () => {
-        await this.switchConnector();
-        res(this.connector);
+        try {
+          await Promise.resolve(this.switchConnector()).timeout(6000);
+          res(this.connector);
+        }catch (e) {
+          rej(e);
+        }
+
         sem.leave();
       });
     });
@@ -146,11 +155,35 @@ class ProviderService extends EventEmitter {
 
   /**
    * @function
-   * @description
+   * @description return current instance
    * @return {Promise<*|bluebird>}
    */
   async get () {
     return this.connector || await this.switchConnectorSafe();
+  }
+
+  /**
+   * @function
+   * @description close the active connector instance
+   * @return {Promise<void>}
+   */
+  async close () {
+    if (!this.connector)
+      return;
+
+    clearInterval(this.pingIntervalId);
+
+    if (this.findBestNodeInterval)
+      clearInterval(this.findBestNodeInterval);
+
+    this.connector.zmq.removeAllListeners('close');
+    if (this.connector.instance instanceof EventEmitter)
+      this.connector.instance.removeAllListeners('disconnect');
+    if (this.connector.instance.disconnect)
+      this.connector.instance.disconnect();
+    this.connector.zmq.disconnect(this.connector.currentProvider.zmq);
+    this.connector.zmq.unmonitor();
+    this.connector = null;
   }
 
 }

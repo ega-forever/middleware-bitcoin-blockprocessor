@@ -1,5 +1,6 @@
 const request = require('request-promise'),
   _ = require('lodash'),
+  URL = require('url').URL,
   uniqid = require('uniqid');
 
 /**
@@ -11,13 +12,12 @@ const request = require('request-promise'),
 class HTTPExec {
 
   constructor(providerURI) {
-    const data = providerURI.split('@');
-    this.httpPath = data[0];
-    if(data[1]){
-      const creds = data[1].split(':');
+    const data = new URL(providerURI);
+    this.httpPath = data.origin;
+    if(data.username){
       this.httpCreds = {
-        user: creds[0],
-        pass: creds[1]
+        user: data.username,
+        pass: data.password
       };
     }
 

@@ -16,6 +16,7 @@ const config = require('../config'),
   featuresTests = require('./features'),
   Network = require('bcoin/lib/protocol/network'),
   blockTests = require('./blocks'),
+  providerService = require('../services/providerService'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
   amqp = require('amqplib'),
@@ -47,8 +48,8 @@ describe('core/blockProcessor', function () {
     mongoose.accounts.close();
     await ctx.amqp.instance.close();
     ctx.nodePid.kill();
+    providerService.close();
   });
-
 
 
   describe('block', () => blockTests(ctx));
